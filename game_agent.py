@@ -37,6 +37,12 @@ def custom_score(game, player):
     # TODO: finish this function!
     raise NotImplementedError
 
+    # if game.is_loser(player):
+    #     return float("-inf")
+
+    # if game.is_winner(player):
+    #     return float("inf")
+
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -213,6 +219,21 @@ class MinimaxPlayer(IsolationPlayer):
         """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+
+        legal_moves = game.get_legal_moves()
+        if not legal_moves:
+            return (-1, -1)
+
+        # Minimax logic
+        # isMax = (self.search_depth - depth) % 2 == 0
+        # if (depth == 0):
+        #     evaluated = [(self.score(self.game.forecast_move(m), self), m)
+        #         for m
+        #         in moves]
+        #     return (max(evaluated)[1] if isMax
+        #         else min(evaluated)[1])
+
+        return(-1,-1)
 
         # TODO: finish this function!
         raise NotImplementedError
