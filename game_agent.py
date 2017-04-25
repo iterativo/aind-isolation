@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+from sys import maxsize
 
 
 class SearchTimeout(Exception):
@@ -166,11 +167,16 @@ class MinimaxPlayer(IsolationPlayer):
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
+        moves = game.get_legal_moves()
+        if not moves:
+            return best_move
 
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.minimax(game, self.search_depth)
+            scored_moves = [(self.minimax(game, self.search_depth), m) 
+                for m in moves]
+            return max(scored_moves)[1]
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -202,9 +208,8 @@ class MinimaxPlayer(IsolationPlayer):
 
         Returns
         -------
-        (int, int)
-            The board coordinates of the best move found in the current search;
-            (-1, -1) if there are no legal moves
+        int
+            The best score
 
         Notes
         -----
@@ -220,23 +225,17 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        legal_moves = game.get_legal_moves()
-        if not legal_moves:
-            return (-1, -1)
+        isMax = (self.search_depth - depth) % 2 == 0
 
-        # Minimax logic
-        # isMax = (self.search_depth - depth) % 2 == 0
-        # if (depth == 0):
-        #     evaluated = [(self.score(self.game.forecast_move(m), self), m)
-        #         for m
-        #         in moves]
-        #     return (max(evaluated)[1] if isMax
-        #         else min(evaluated)[1])
+        moves = game.get_legal_moves()
+        if not moves:
+            return -maxsize if isMax else maxsize
 
-        return(-1,-1)
+        scores = ([self.score(game, self) for m in moves]
+            if depth == 0
+            else [self.minimax(game.forecast_move(m), depth - 1) for m in moves])
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        return max(scores) if isMax else min(scores)
 
 
 class AlphaBetaPlayer(IsolationPlayer):

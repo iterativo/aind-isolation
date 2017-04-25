@@ -30,14 +30,15 @@ class MinimaxPlayerTest(unittest.TestCase):
 
     def test_get_move(self):
         self.player1 = game_agent.MinimaxPlayer(
-            score_fn=sample_players.improved_score)
+            score_fn=sample_players.improved_score, search_depth=1)
         self.player2 = game_agent.AlphaBetaPlayer()
         self.game = isolation.Board(self.player1, self.player2)
-
         self.game.apply_move((3, 3))
         self.game.apply_move((3, 4))
+
         best_next_move = self.player1.get_move(self.game, stubbed_time_left)
-        self.assertEqual(best_next_move, (-1, -1))
+
+        self.assertEqual(best_next_move, (5, 4))
 
 
 def stubbed_time_left():
