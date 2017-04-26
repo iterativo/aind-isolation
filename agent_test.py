@@ -25,26 +25,27 @@ class IsolationTest(unittest.TestCase):
 class MinimaxPlayerTest(unittest.TestCase):
     """Unit tests for minimax player"""
 
-    def test_best_score_move_for_player1(self):
+    def test_best_score_when_last_layer_is_min(self):
         # Arrange
         reload(game_agent)
         self.player1 = game_agent.MinimaxPlayer(
             score_fn=self.stubbed_score_fn, search_depth=1)
         self.player2 = sample_players.RandomPlayer()
         self.game = isolation.Board(self.player1, self.player2, width=4, height=4)
-        self.game.apply_move((0, 0))
-        self.game.apply_move((3, 3))
+        self.game.apply_move((0, 0)) # player 1
+        self.game.apply_move((3, 3)) # player 2
 
         # Act
         best_move = self.player1.get_move(self.game, stubbed_time_left)
+
         # Assert
         self.assertEqual(best_move, (1, 2))
 
     def stubbed_score_fn(self, game, player):
-        if player == self.player1:
-            if game.get_player_location(player) == (1, 2):
-                return 5
-            if game.get_player_location(player) == (2, 1):
+        if player == self.player2:
+            if game.get_player_location(self.player1) == (2, 1):
+                return 1
+            if game.get_player_location(self.player1) == (1, 2): # expect selection
                 return 4
         return 2
 
