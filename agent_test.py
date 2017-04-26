@@ -25,33 +25,32 @@ class IsolationTest(unittest.TestCase):
 class MinimaxPlayerTest(unittest.TestCase):
     """Unit tests for minimax player"""
 
-    def test_get_move(self):
-        self.set_up_minimax(depth=1)
-        self.assertEqual(self.player1.get_move(self.game, stubbed_time_left),
-            (2, 1))
-
-        # self.set_up_minimax(depth=3)
-        # self.assertEqual(self.player1.get_move(self.game, stubbed_time_left),
-        #     (2, 1))
-
-    def set_up_minimax(self,
-        depth=1,
-        player1_start=(0, 0),
-        player2_start=(3, 3)):
+    def test_best_score_move_for_player1(self):
+        # Arrange
         reload(game_agent)
         self.player1 = game_agent.MinimaxPlayer(
-            score_fn=sample_players.improved_score, search_depth=depth)
+            score_fn=self.stubbed_score_fn, search_depth=1)
         self.player2 = sample_players.RandomPlayer()
         self.game = isolation.Board(self.player1, self.player2, width=4, height=4)
-        self.game.apply_move(player1_start)
-        self.game.apply_move(player2_start)
+        self.game.apply_move((0, 0))
+        self.game.apply_move((3, 3))
+
+        # Act
+        best_move = self.player1.get_move(self.game, stubbed_time_left)
+        # Assert
+        self.assertEqual(best_move, (1, 2))
+
+    def stubbed_score_fn(self, game, player):
+        if player == self.player1:
+            if game.get_player_location(player) == (1, 2):
+                return 5
+            if game.get_player_location(player) == (2, 1):
+                return 4
+        return 2
 
 
 def stubbed_time_left():
     return 250  # msecs
-
-
-
 
 
 def debug(game):
@@ -67,7 +66,6 @@ def debug(game):
     print("\n")
     print("game board:")
     print(game.to_string())
-
 
 
 if __name__ == '__main__':
