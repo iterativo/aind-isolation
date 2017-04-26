@@ -198,13 +198,14 @@ class MinimaxPlayer(IsolationPlayer):
         #     return best_move
 
         # debug(self.search_depth, self.search_depth, "START: active player", game.active_player)
-        # debug(self.search_depth, self.search_depth, "player location", game.get_player_location(game.active_player))
+        # debug(self.search_depth, self.search_depth, "active player location", game.get_player_location(game.active_player))
+        # debug(self.search_depth, self.search_depth, "inactive player location", game.get_player_location(game.inactive_player))
         # debug(self.search_depth, self.search_depth, "moves", moves)
 
         # try:
         #     scored_moves = []
         #     for m in moves:
-        #         debug(self.search_depth, self.search_depth, "explore move", m)
+        #         debug(self.search_depth, self.search_depth, "make move", m)
         #         forecast = game.forecast_move(m)
         #         minimax = self.minimax(forecast, self.search_depth - 1)
         #         scored_moves.append((minimax, m))
@@ -264,9 +265,9 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         if depth == 0:
-            return self.score(game, game.active_player)
+            return self.score(game, self)
 
-        isMax = ((self.search_depth - 1) - depth) % 2 == 0
+        isMax = ((self.search_depth) - depth) % 2 == 0
         moves = game.get_legal_moves()
         if not moves:
             return float("-inf") if isMax else float("inf")
@@ -278,13 +279,14 @@ class MinimaxPlayer(IsolationPlayer):
         ###### DEBUGABLE CODE (Verbose) #####
 
         # debug(depth, self.search_depth, "active player", game.active_player)
-        # debug(depth, self.search_depth, "player location", game.get_player_location(game.active_player))
+        # debug(depth, self.search_depth, "active player location", game.get_player_location(game.active_player))
+        # debug(depth, self.search_depth, "inactive player location", game.get_player_location(game.inactive_player))
 
         # if self.time_left() < self.TIMER_THRESHOLD:
         #     raise SearchTimeout()
 
         # if depth == 0:
-        #     score = self.score(game, game.active_player)
+        #     score = self.score(game, self)
         #     debug(depth, self.search_depth, "score", score)
         #     return score
 
@@ -297,7 +299,7 @@ class MinimaxPlayer(IsolationPlayer):
         #     scores.append(float("-inf")) if isMax else scores.append(float("inf"))
         # else:
         #     for m in moves:
-        #         debug(depth, self.search_depth, "explore move", m)
+        #         debug(depth, self.search_depth, "make move", m)
         #         scores.append(self.minimax(game.forecast_move(m), depth - 1))
 
         # debug(depth, self.search_depth, "scores", scores)
