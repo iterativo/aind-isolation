@@ -178,7 +178,7 @@ class MinimaxPlayer(IsolationPlayer):
             # raised when the timer is about to expire.
             scored_moves = [(self.minimax(game.forecast_move(m), 1), m) 
                 for m in moves]
-            return max(scored_moves)[1]
+            best_move = max(scored_moves)[1]
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -345,10 +345,41 @@ class AlphaBetaPlayer(IsolationPlayer):
             Board coordinates corresponding to a legal move; may return
             (-1, -1) if there are no available legal moves.
         """
+
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+        moves = game.get_legal_moves()
+        if not moves:
+            return best_move
+
+        depth = 0
+
+        debug(depth, "START: active player", game.active_player)
+        debug(depth, "active player location", game.get_player_location(game.active_player))
+        debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
+        debug(depth, "moves", moves)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            alpha = float("-inf")
+            for m in moves:
+                debug(depth, "attempt move", m)
+                new_score = self.alphabeta(
+                    game.forecast_move(m), depth + 1, alpha)
+                if new_score > alpha:
+                    best_move = m
+                    alpha = new_score
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        debug(depth, "best move", best_move)
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -380,9 +411,8 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         Returns
         -------
-        (int, int)
-            The board coordinates of the best move found in the current search;
-            (-1, -1) if there are no legal moves
+        float
+            The heuristic value of the current game state
 
         Notes
         -----
@@ -395,11 +425,49 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        
+        debug(depth, "active player", game.active_player)
+        debug(depth, "active player location", game.get_player_location(game.active_player))
+        debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        if depth == self.search_depth:
+            return self.score(game, self)
+
+        isMax = depth % 2 == 0
+        debug(depth, "isMax", isMax)
+        moves = game.get_legal_moves()
+        if not moves:
+            return float("-inf") if isMax else float("inf")
+
+        debug(depth, "moves", moves)
+        score = float("-inf") if isMax else float("inf")
+        for m in moves:
+            debug(depth, "attempt move", m)
+            debug(depth, "alpha", alpha)
+            debug(depth, "beta", beta)
+            new_score = self.alphabeta(
+                game.forecast_move(m), depth + 1, alpha, beta)
+            debug(depth, "new score", new_score)
+            if isMax:
+                score = max(score, new_score)
+                debug(depth, "score", score)
+                alpha = score
+                debug(depth, "alpha", alpha)
+                if beta <= score:
+                    break
+            else:  # min
+                score = min(score, new_score)
+                debug(depth, "score", score)
+                beta = score
+                debug(depth, "beta", beta)
+                if alpha >= score:
+                    debug(depth, "BREAK", True)
+                    break
+        return score
+
 
 def debug(depth, key, value):
     """
