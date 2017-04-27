@@ -355,21 +355,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         if not moves:
             return best_move
 
-        depth = 0
-
-        debug(depth, "START: active player", game.active_player)
-        debug(depth, "active player location", game.get_player_location(game.active_player))
-        debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
-        debug(depth, "moves", moves)
-
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             alpha = float("-inf")
             for m in moves:
-                debug(depth, "attempt move", m)
                 new_score = self.alphabeta(
-                    game.forecast_move(m), depth + 1, alpha)
+                    game.forecast_move(m), 1, alpha)
                 if new_score > alpha:
                     best_move = m
                     alpha = new_score
@@ -378,7 +370,6 @@ class AlphaBetaPlayer(IsolationPlayer):
             pass  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
-        debug(depth, "best move", best_move)
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -425,10 +416,6 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        
-        debug(depth, "active player", game.active_player)
-        debug(depth, "active player location", game.get_player_location(game.active_player))
-        debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
 
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
@@ -437,34 +424,23 @@ class AlphaBetaPlayer(IsolationPlayer):
             return self.score(game, self)
 
         isMax = depth % 2 == 0
-        debug(depth, "isMax", isMax)
+        score = float("-inf") if isMax else float("inf")
         moves = game.get_legal_moves()
         if not moves:
-            return float("-inf") if isMax else float("inf")
+            return score
 
-        debug(depth, "moves", moves)
-        score = float("-inf") if isMax else float("inf")
         for m in moves:
-            debug(depth, "attempt move", m)
-            debug(depth, "alpha", alpha)
-            debug(depth, "beta", beta)
             new_score = self.alphabeta(
                 game.forecast_move(m), depth + 1, alpha, beta)
-            debug(depth, "new score", new_score)
             if isMax:
                 score = max(score, new_score)
-                debug(depth, "score", score)
                 alpha = score
-                debug(depth, "alpha", alpha)
                 if beta <= score:
                     break
             else:  # min
                 score = min(score, new_score)
-                debug(depth, "score", score)
                 beta = score
-                debug(depth, "beta", beta)
                 if alpha >= score:
-                    debug(depth, "BREAK", True)
                     break
         return score
 
