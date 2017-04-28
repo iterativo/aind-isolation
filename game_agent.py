@@ -88,7 +88,16 @@ def custom_score_2(game, player):
     center_ability = 1 if game.move_is_legal((cx, cy)) else 0
     weight2 = 30
 
-    return weight1 * (1 - center_distance) + weight2 * center_ability
+    player_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    opp_spot_takeover_ability = (
+        1 if len(set(player_moves) & set(opp_moves)) != 0
+        else 1)
+    weight3 = 50
+
+    return (weight1 * (1 - center_distance) 
+        + weight2 * center_ability
+        + weight3 * opp_spot_takeover_ability)
 
 
 def custom_score_3(game, player):
@@ -123,19 +132,27 @@ def custom_score_3(game, player):
     cy, cx = (game.width // 2, game.height // 2)
     y, x = game.get_player_location(player)
     center_distance = (cx - x)**2 + (cy - y)**2
-    weight1 = (cx + cy)**2
+    weight1 = 50
 
     center_ability = 1 if game.move_is_legal((cx, cy)) else 0
-    weight2 = 30
+    weight2 = 200
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     relative_mobility = own_moves - opp_moves
-    weight3 = 10
+    weight3 = 500
+
+    player_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    opp_spot_takeover_ability = (
+        1 if len(set(player_moves) & set(opp_moves)) != 0
+        else 1)
+    weight4 = 100
 
     return (weight1 * (1 - center_distance)
             + weight2 * center_ability
-            + weight3 * relative_mobility)
+            + weight3 * relative_mobility
+            + weight4 * opp_spot_takeover_ability)
 
 
 class IsolationPlayer:
