@@ -2,8 +2,8 @@
 test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
-import random
 
+import random
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -34,14 +34,19 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
 
-    # if game.is_loser(player):
-    #     return float("-inf")
+    if game.is_loser(player):
+        return float("-inf")
 
-    # if game.is_winner(player):
-    #     return float("inf")
+    if game.is_winner(player):
+        return float("inf")
+
+    cy, cx = (game.width // 2, game.height // 2)
+    y, x = game.get_player_location(player)
+    center_distance = (cx - x)**2 + (cy - y)**2
+    weight = (cx + cy)**3
+
+    return weight * (1 - center_distance)
 
 
 def custom_score_2(game, player):
@@ -68,8 +73,22 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    cy, cx = (game.width // 2, game.height // 2)
+    y, x = game.get_player_location(player)
+    center_distance = (cx - x)**2 + (cy - y)**2
+    weight1 = (cx + cy)**2
+
+    center_ability = 1 if game.move_is_legal((cx, cy)) else 0
+    weight2 = 30
+
+    return weight1 * (1 - center_distance) + weight2 * center_ability
 
 
 def custom_score_3(game, player):
@@ -94,8 +113,29 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    cy, cx = (game.width // 2, game.height // 2)
+    y, x = game.get_player_location(player)
+    center_distance = (cx - x)**2 + (cy - y)**2
+    weight1 = (cx + cy)**2
+
+    center_ability = 1 if game.move_is_legal((cx, cy)) else 0
+    weight2 = 30
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    relative_mobility = own_moves - opp_moves
+    weight3 = 10
+
+    return (weight1 * (1 - center_distance)
+            + weight2 * center_ability
+            + weight3 * relative_mobility)
 
 
 class IsolationPlayer:
