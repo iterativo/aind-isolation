@@ -460,7 +460,8 @@ class AlphaBetaPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         if best_move == (-1, -1):
             print(datetime.datetime.utcnow())
-            print("ILEGAL MOVE adopted, even though moves =", moves)
+            print("No best move determined from:", moves, "Pick random")
+            return random.choice(moves)
         print("return best_move:", best_move)
         return best_move
 

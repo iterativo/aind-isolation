@@ -3,6 +3,8 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 
+import random
+
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -435,7 +437,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
 
-        # Return the best move from the last completed search iteration
+        # avoid forfeiting the game
+        if (best_move == (-1, -1)) and (len(moves) > 0):
+            best_move = random.choice(moves)
+
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -489,14 +494,14 @@ class AlphaBetaPlayer(IsolationPlayer):
         if depth == self.search_depth:
             return self.score(game, self)
 
+        moves = game.get_legal_moves()
+        if not moves:
+            return self.score(game, self)
+
         # NOTE: First decision on this function should be a Min
         # (since a previous decision is made by the caller as Max)
         isMax = depth % 2 == 0
         score = float("-inf") if isMax else float("inf")
-        moves = game.get_legal_moves()
-        if not moves:
-            return score
-
         for m in moves:
             new_score = self.alphabeta(
                 game.forecast_move(m), depth + 1, alpha, beta)
