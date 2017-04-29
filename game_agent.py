@@ -44,9 +44,10 @@ def custom_score(game, player):
     opp_moves = game.get_legal_moves(game.get_opponent(player))
 
     # own mobility vs opponent's (normalized [-1.0 ... 1.0])
-    own_count = len(own_moves)
-    opp_count = len(opp_moves)
-    relative_mobility = (own_count - opp_count) / max(own_count, opp_count)
+    own_mobility = len(own_moves)
+    opp_mobility = len(opp_moves)
+    relative_mobility = ((own_mobility - opp_mobility) /
+                         max(own_mobility, opp_mobility))
 
     # distance to the center - the closer the better (normalized [0 ... 1])
     cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
@@ -62,10 +63,11 @@ def custom_score(game, player):
         else 1)
 
     # score is calculated using weights for the normalized params
-    return (70 * relative_mobility +
-            5 * center_distance +
-            10 * center_ability +
-            15 * opp_spot_takeover_ability)
+    return (65 * relative_mobility +
+            15 * own_mobility +
+            3 * center_distance +
+            7 * center_ability +
+            10 * opp_spot_takeover_ability)
 
 
 def custom_score_2(game, player):
