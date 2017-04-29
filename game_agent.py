@@ -41,12 +41,13 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    cy, cx = (game.width // 2, game.height // 2)
+    # distance to the center - the closer the better (normalized [0 ... 1])
+    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
     y, x = game.get_player_location(player)
-    center_distance = (cx - x)**2 + (cy - y)**2
-    weight = (cx + cy)**3
+    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
 
-    return weight * (1 - center_distance)
+    # score is calculated using weights for the normalized params
+    return 100 * center_distance
 
 
 def custom_score_2(game, player):
@@ -80,25 +81,27 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    cy, cx = (game.width // 2, game.height // 2)
-    y, x = game.get_player_location(player)
-    center_distance = (cx - x)**2 + (cy - y)**2
-    weight1 = (cx + cy)**2
-
-    center_ability = 1 if game.move_is_legal((cx, cy)) else 0
-    weight2 = 30
-
-    player_moves = game.get_legal_moves(player)
+    own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # distance to the center - the closer the better (normalized [0 ... 1])
+    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
+    y, x = game.get_player_location(player)
+    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+
+    # ability to take over the center on next move
+    center_ability = 1 if (cx, cy) in own_moves else 0
+
+    # ability to take over an opponent's next move
     opp_spot_takeover_ability = (
-        1 if len(set(player_moves) & set(opp_moves)) != 0
+        1 if len(set(own_moves) & set(opp_moves)) != 0
         else 1)
-    weight3 = 50
 
-    return (weight1 * (1 - center_distance) 
-        + weight2 * center_ability
-        + weight3 * opp_spot_takeover_ability)
-
+    # score is calculated using weights for the normalized params
+    return (5 * center_distance +
+            25 * center_ability +
+            70 * opp_spot_takeover_ability)
+    
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
