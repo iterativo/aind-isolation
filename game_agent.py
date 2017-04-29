@@ -40,34 +40,51 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
+    player_location = game.get_player_location(player)
+    opponent_location = game.get_player_location(game.get_opponent(player))
+    board_center = ((game.width - 1) / 2, (game.height - 1) / 2)
+
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
 
+    # --- relative_mobility
     # own mobility vs opponent's (normalized [-1.0 ... 1.0])
     own_mobility = len(own_moves)
     opp_mobility = len(opp_moves)
     relative_mobility = ((own_mobility - opp_mobility) /
                          max(own_mobility, opp_mobility))
 
+    # --- relative_center_domination
+    # distance to the center relative to opponent's
+    # (the shorter the distance as compared to the opponent's, the better)
     # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
-    y, x = game.get_player_location(player)
-    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+    cy, cx = board_center
+    py, px = player_location
+    oy, ox = opponent_location
+    player_distance = (((cx - px) + (cy - py))**2 / (cx + cy)**2)
+    opponent_distance = (((cx - ox) + (cy - oy))**2 / (cx + cy)**2)
+    relative_center_domination = opponent_distance - player_distance
 
+    # --- center_ability
     # ability to take over the center on next move
-    center_ability = 1 if (cx, cy) in own_moves else 0
+    center_ability = 0
+    if game.active_player == player:
+        center_ability = 1 if (cx, cy) in own_moves else 0
 
-    # ability to take over an opponent's next move
-    opp_spot_takeover_ability = (
-        1 if len(set(own_moves) & set(opp_moves)) != 0
-        else 1)
+    # --- opponent_block_ability
+    # ability to block opponent on next move
+    opponent_block_ability = 0
+    if game.active_player == player:
+        opponent_block_ability = (
+            1 if len(set(own_moves) & set(opp_moves)) != 0
+            else 0)
 
     # score is calculated using weights for the normalized params
-    return (65 * relative_mobility +
-            15 * own_mobility +
-            3 * center_distance +
-            7 * center_ability +
-            10 * opp_spot_takeover_ability)
+    return float(60 * relative_mobility +
+                 15 * own_mobility +
+                 10 * relative_center_domination +
+                 5 * center_ability +
+                 10 * opponent_block_ability)
 
 
 def custom_score_2(game, player):
@@ -101,26 +118,27 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
+    player_location = game.get_player_location(player)
+    opponent_location = game.get_player_location(game.get_opponent(player))
+    board_center = ((game.width - 1) / 2, (game.height - 1) / 2)
+
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
 
-    # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
-    y, x = game.get_player_location(player)
-    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+    # --- open_moves
+    open_moves = len(own_moves)
 
-    # ability to take over the center on next move
-    center_ability = 1 if (cx, cy) in own_moves else 0
+    # --- opponent_block_ability
+    # ability to block opponent on next move
+    opponent_block_ability = 0
+    if game.active_player == player:
+        opponent_block_ability = (
+            1 if len(set(own_moves) & set(opp_moves)) != 0
+            else 0)
 
-    # ability to take over an opponent's next move
-    opp_spot_takeover_ability = (
-        1 if len(set(own_moves) & set(opp_moves)) != 0
-        else 1)
-
-    # score is calculated using weights for the normalized params
-    return (5 * center_distance +
-            25 * center_ability +
-            70 * opp_spot_takeover_ability)
+    # score is calculated using weights for the params
+    return float(2 * open_moves +
+                 10 * opponent_block_ability)
 
 
 def custom_score_3(game, player):
@@ -154,13 +172,27 @@ def custom_score_3(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
-    y, x = game.get_player_location(player)
-    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # --- relative_mobility
+    # own mobility vs opponent's (normalized [-1.0 ... 1.0])
+    own_mobility = len(own_moves)
+    opp_mobility = len(opp_moves)
+    relative_mobility = ((own_mobility - opp_mobility) /
+                         max(own_mobility, opp_mobility))
+
+    # --- opponent_block_ability
+    # ability to block opponent on next move
+    opponent_block_ability = 0
+    if game.active_player == player:
+        opponent_block_ability = (
+            1 if len(set(own_moves) & set(opp_moves)) != 0
+            else 0)
 
     # score is calculated using weights for the normalized params
-    return 100 * center_distance
+    return float(55 * relative_mobility +
+                 45 * opponent_block_ability)
 
 
 class IsolationPlayer:
