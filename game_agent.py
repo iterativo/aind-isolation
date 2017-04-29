@@ -5,105 +5,13 @@ and include the results in your report.
 
 import random
 
+
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
 
 def custom_score(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
-
-    This should be the best heuristic function for your project submission.
-
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
-
-    Parameters
-    ----------
-    game : `isolation.Board`
-        An instance of `isolation.Board` encoding the current state of the
-        game (e.g., player locations and blocked cells).
-
-    player : object
-        A player instance in the current game (i.e., an object corresponding to
-        one of the player objects `game.__player_1__` or `game.__player_2__`.)
-
-    Returns
-    -------
-    float
-        The heuristic value of the current game state to the specified player.
-    """
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-    # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
-    y, x = game.get_player_location(player)
-    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
-
-    # score is calculated using weights for the normalized params
-    return 100 * center_distance
-
-
-def custom_score_2(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
-
-    This should be the best heuristic function for your project submission.
-
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
-
-    Parameters
-    ----------
-    game : `isolation.Board`
-        An instance of `isolation.Board` encoding the current state of the
-        game (e.g., player locations and blocked cells).
-
-    player : object
-        A player instance in the current game (i.e., an object corresponding to
-        one of the player objects `game.__player_1__` or `game.__player_2__`.)
-
-    Returns
-    -------
-    float
-        The heuristic value of the current game state to the specified player.
-    """
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-    own_moves = game.get_legal_moves(player)
-    opp_moves = game.get_legal_moves(game.get_opponent(player))
-
-    # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
-    y, x = game.get_player_location(player)
-    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
-
-    # ability to take over the center on next move
-    center_ability = 1 if (cx, cy) in own_moves else 0
-
-    # ability to take over an opponent's next move
-    opp_spot_takeover_ability = (
-        1 if len(set(own_moves) & set(opp_moves)) != 0
-        else 1)
-
-    # score is calculated using weights for the normalized params
-    return (5 * center_distance +
-            25 * center_ability +
-            70 * opp_spot_takeover_ability)
-    
-
-def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
 
@@ -158,6 +66,99 @@ def custom_score_3(game, player):
             5 * center_distance +
             10 * center_ability +
             15 * opp_spot_takeover_ability)
+
+
+def custom_score_2(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # distance to the center - the closer the better (normalized [0 ... 1])
+    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
+    y, x = game.get_player_location(player)
+    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+
+    # ability to take over the center on next move
+    center_ability = 1 if (cx, cy) in own_moves else 0
+
+    # ability to take over an opponent's next move
+    opp_spot_takeover_ability = (
+        1 if len(set(own_moves) & set(opp_moves)) != 0
+        else 1)
+
+    # score is calculated using weights for the normalized params
+    return (5 * center_distance +
+            25 * center_ability +
+            70 * opp_spot_takeover_ability)
+
+
+def custom_score_3(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    # distance to the center - the closer the better (normalized [0 ... 1])
+    cy, cx = ((game.width - 1) / 2, (game.height - 1) / 2)
+    y, x = game.get_player_location(player)
+    center_distance = 1 - (((cx - x) + (cy - y))**2 / (cx + cy)**2)
+
+    # score is calculated using weights for the normalized params
+    return 100 * center_distance
 
 
 class IsolationPlayer:
