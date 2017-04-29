@@ -3,6 +3,9 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 
+import random
+import datetime
+
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -413,29 +416,52 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         self.time_left = time_left
 
+        print("")
+        print("")
+        print("*** START ***")
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
         moves = game.get_legal_moves()
+        print(datetime.datetime.utcnow())
+        print("moves:", moves)
         if not moves:
+            print("NO MORE moves available in alphabeta")
             return best_move
         if len(moves) == 1:
             return moves[0]
 
+        counter = 1
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
             alpha = float("-inf")
             for m in moves:
+                print("Iteration", counter)
+                print("move:", m)
+                counter += 1
                 new_score = self.alphabeta(game.forecast_move(m), 1, alpha)
+                print("new_score:", new_score)
+                print("alpha:", alpha)
                 if new_score > alpha:
+                    print("new_score is > alpha")
                     best_move = m
+                    print(datetime.datetime.utcnow())
                     alpha = new_score
+                print("legal moves:", moves)
+                print("best_move:", best_move)
 
         except SearchTimeout:
+            print("SearchTimeout in alphabeta")
             pass  # Handle any actions required after timeout as needed
 
+        print(datetime.datetime.utcnow())
+        print("END moves:", moves)
         # Return the best move from the last completed search iteration
+        if best_move == (-1, -1):
+            print(datetime.datetime.utcnow())
+            print("ILEGAL MOVE adopted, even though moves =", moves)
+        print("return best_move:", best_move)
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -487,29 +513,45 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         if depth == self.search_depth:
+            debug(depth, "depth == search_depth", True)
             return self.score(game, self)
 
         # NOTE: First decision on this function should be a Min
         # (since a previous decision is made by the caller as Max)
         isMax = depth % 2 == 0
+        debug(depth, "isMax", isMax)
+        debug(depth, "alpha", alpha)
+        debug(depth, "beta", beta)
         score = float("-inf") if isMax else float("inf")
         moves = game.get_legal_moves()
+        debug(depth, "moves", moves)
         if not moves:
+            debug(depth, "score", score)
             return score
 
         for m in moves:
+            debug(depth, "move", m)
             new_score = self.alphabeta(
                 game.forecast_move(m), depth + 1, alpha, beta)
             if isMax:
                 score = max(score, new_score)
                 alpha = score
                 if beta < score:
+                    debug(depth, "beta", beta)
+                    debug(depth, "score", score)
+                    debug(depth, "beta <= score", True)
+                    debug(depth, "PRUNING", True)
                     break
             else:  # min
                 score = min(score, new_score)
                 beta = score
                 if alpha > score:
+                    debug(depth, "alpha", alpha)
+                    debug(depth, "score", score)
+                    debug(depth, "alpha >= score", True)
+                    debug(depth, "PRUNING", True)
                     break
+        debug(depth, "score", score)
         return score
 
 
