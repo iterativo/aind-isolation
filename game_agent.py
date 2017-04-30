@@ -15,140 +15,22 @@ def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
 
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
-
-    Parameters
-    ----------
-    game : `isolation.Board`
-        An instance of `isolation.Board` encoding the current state of the
-        game (e.g., player locations and blocked cells).
-
-    player : object
-        A player instance in the current game (i.e., an object corresponding to
-        one of the player objects `game.__player_1__` or `game.__player_2__`.)
-
-    Returns
-    -------
-    float
-        The heuristic value of the current game state to the specified player.
-    """
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-    player_location = game.get_player_location(player)
-    opponent_location = game.get_player_location(game.get_opponent(player))
-    board_center = ((game.width - 1) / 2, (game.height - 1) / 2)
-
-    own_moves = game.get_legal_moves(player)
-    opp_moves = game.get_legal_moves(game.get_opponent(player))
-
-    # --- relative_mobility
-    # own mobility vs opponent's (normalized [-1.0 ... 1.0])
-    own_mobility = len(own_moves)
-    opp_mobility = len(opp_moves)
-    relative_mobility = ((own_mobility - opp_mobility) /
-                         max(own_mobility, opp_mobility))
-
-    # --- relative_center_domination
-    # distance to the center relative to opponent's
-    # (the shorter the distance as compared to the opponent's, the better)
-    # distance to the center - the closer the better (normalized [0 ... 1])
-    cy, cx = board_center
-    py, px = player_location
-    oy, ox = opponent_location
-    player_distance = (((cx - px) + (cy - py))**2 / (cx + cy)**2)
-    opponent_distance = (((cx - ox) + (cy - oy))**2 / (cx + cy)**2)
-    relative_center_domination = opponent_distance - player_distance
-
-    # --- center_ability
-    # ability to take over the center on next move
-    center_ability = 0
-    if game.active_player == player:
-        center_ability = 1 if (cx, cy) in own_moves else 0
-
-    # --- opponent_block_ability
-    # ability to block opponent on next move
-    opponent_block_ability = 0
-    if game.active_player == player:
-        opponent_block_ability = (
-            1 if len(set(own_moves) & set(opp_moves)) != 0
-            else 0)
-
-    # score is calculated using weights for the normalized params
-    return float(60 * relative_mobility +
-                 15 * own_mobility +
-                 10 * relative_center_domination +
-                 5 * center_ability +
-                 10 * opponent_block_ability)
-
-
-def custom_score_2(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
-
     This should be the best heuristic function for your project submission.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
 
-    Parameters
-    ----------
-    game : `isolation.Board`
-        An instance of `isolation.Board` encoding the current state of the
-        game (e.g., player locations and blocked cells).
+    Heuristic explanation
+    ---------------------
+    Combines 2 different strategies:
 
-    player : object
-        A player instance in the current game (i.e., an object corresponding to
-        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+    1) Comparing the amount of own moves vs the opponent's, in a normalized
+       fashion with -1.0 representing the worst possible state, and 1.0 the
+       best.
+    2) Ability to block the opponent when the next turn belongs to them.
 
-    Returns
-    -------
-    float
-        The heuristic value of the current game state to the specified player.
-    """
-
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-    player_location = game.get_player_location(player)
-    opponent_location = game.get_player_location(game.get_opponent(player))
-    board_center = ((game.width - 1) / 2, (game.height - 1) / 2)
-
-    own_moves = game.get_legal_moves(player)
-    opp_moves = game.get_legal_moves(game.get_opponent(player))
-
-    # --- open_moves
-    open_moves = len(own_moves)
-
-    # --- opponent_block_ability
-    # ability to block opponent on next move
-    opponent_block_ability = 0
-    if game.active_player == player:
-        opponent_block_ability = (
-            1 if len(set(own_moves) & set(opp_moves)) != 0
-            else 0)
-
-    # score is calculated using weights for the params
-    return float(2 * open_moves +
-                 10 * opponent_block_ability)
-
-
-def custom_score_3(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
-
-    This should be the best heuristic function for your project submission.
-
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
+    These strategies are summed up in a weighted manner, with a slightly more
+    emphasis on strategy # 1, in order to produce the final score.
 
     Parameters
     ----------
@@ -195,6 +77,159 @@ def custom_score_3(game, player):
                  45 * opponent_block_ability)
 
 
+def custom_score_2(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Heuristic explanation
+    ---------------------
+    Combines 5 different strategies:
+
+    1) Comparing the amount of own moves vs the opponent's, in a normalized
+       fashion with -1.0 representing the worst possible state, and 1.0 the
+       best.
+    2) A simple count of the number of possible moves for the player.
+    3) Evaluating which player is closer to the center of the board, with a
+       higher score indicating the player is closer and hence in a better
+       position than the opponent.
+    4) Ability for the player to take over the center on next move.
+    5) Ability to block the opponent when the next turn belongs to them.
+
+    These strategies are summed up in a weighted manner, with a slightly more
+    emphasis on strategy # 1, in order to produce the final score.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    player_location = game.get_player_location(player)
+    opponent_location = game.get_player_location(game.get_opponent(player))
+    board_center = ((game.width - 1) / 2, (game.height - 1) / 2)
+
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # --- relative_mobility
+    # own mobility vs opponent's (normalized [-1.0 ... 1.0])
+    own_mobility = len(own_moves)
+    opp_mobility = len(opp_moves)
+    relative_mobility = ((own_mobility - opp_mobility) /
+                         max(own_mobility, opp_mobility))
+
+    # --- relative_center_domination
+    # distance to the center relative to the opponent's
+    # (the shorter the distance as compared to the opponent's, the better)
+    cy, cx = board_center
+    py, px = player_location
+    oy, ox = opponent_location
+    player_distance = (((cx - px) + (cy - py))**2 / (cx + cy)**2)
+    opponent_distance = (((cx - ox) + (cy - oy))**2 / (cx + cy)**2)
+    relative_center_domination = opponent_distance - player_distance
+
+    # --- center_ability
+    # ability to take over the center on next move
+    center_ability = 0
+    if game.active_player == player:
+        center_ability = 1 if (cx, cy) in own_moves else 0
+
+    # --- opponent_block_ability
+    # ability to block opponent on next move
+    opponent_block_ability = 0
+    if game.active_player == player:
+        opponent_block_ability = (
+            1 if len(set(own_moves) & set(opp_moves)) != 0
+            else 0)
+
+    # score is calculated using weights for the normalized params
+    return float(60 * relative_mobility +
+                 15 * own_mobility +
+                 10 * relative_center_domination +
+                 5 * center_ability +
+                 10 * opponent_block_ability)
+
+
+def custom_score_3(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Heuristic explanation
+    ---------------------
+    Combines 2 different strategies:
+
+    1) Determining the ability to block the opponent when the next turn belongs
+       to them.
+    2) A simple count of the number of possible moves for the player.
+
+    These strategies are summed up in a weighted manner, with a slightly more
+    emphasis on strategy # 1, in order to produce the final score.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # --- own_mobility
+    own_mobility = len(own_moves)
+
+    # --- opponent_block_ability
+    # ability to block opponent on next move
+    opponent_block_ability = 0
+    if game.active_player == player:
+        opponent_block_ability = (
+            1 if len(set(own_moves) & set(opp_moves)) != 0
+            else 0)
+
+    # score is calculated using weights for the params
+    return float(10 * opponent_block_ability +
+                 2 * own_mobility)
+
+
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
     constructed or tested directly.
@@ -217,6 +252,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
+
     def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
@@ -259,7 +295,7 @@ class MinimaxPlayer(IsolationPlayer):
             (-1, -1) if there are no available legal moves.
         """
 
-        ###### NON-DEBUGABLE CODE (Concise) #####
+        # NON-DEBUGABLE CODE (Concise)
 
         self.time_left = time_left
 
@@ -285,7 +321,7 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
-        ###### DEBUGABLE CODE (Verbose) #####
+        # DEBUGABLE CODE (Verbose)
 
         # self.time_left = time_left
 
@@ -361,7 +397,7 @@ class MinimaxPlayer(IsolationPlayer):
                 testing.
         """
 
-        ###### NON-DEBUGABLE CODE (Concise) #####
+        # NON-DEBUGABLE CODE (Concise)
 
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
@@ -374,15 +410,18 @@ class MinimaxPlayer(IsolationPlayer):
         if not moves:
             return float("-inf") if isMax else float("inf")
 
-        scores = [self.minimax(game.forecast_move(m), depth + 1) for m in moves]
+        scores = [self.minimax(game.forecast_move(m), depth + 1)
+                  for m in moves]
 
         return max(scores) if isMax else min(scores)
 
-        ###### DEBUGABLE CODE (Verbose) #####
+        # DEBUGABLE CODE (Verbose)
 
         # debug(depth, "active player", game.active_player)
-        # debug(depth, "active player location", game.get_player_location(game.active_player))
-        # debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
+        # debug(depth, "active player location",
+        #       game.get_player_location(game.active_player))
+        # debug(depth, "inactive player location",
+        #       game.get_player_location(game.inactive_player))
 
         # if self.time_left() < self.TIMER_THRESHOLD:
         #     raise SearchTimeout()
@@ -398,7 +437,9 @@ class MinimaxPlayer(IsolationPlayer):
         # debug(depth, "moves", moves)
         # scores = []
         # if not moves:
-        #     scores.append(float("-inf")) if isMax else scores.append(float("inf"))
+        #     scores.append(float("-inf"))
+        #       if isMax
+        #       else scores.append(float("inf"))
         # else:
         #     for m in moves:
         #         debug(depth, "attempt move", m)
