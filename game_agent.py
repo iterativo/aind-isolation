@@ -405,15 +405,15 @@ class MinimaxPlayer(IsolationPlayer):
         if depth == self.search_depth:
             return self.score(game, self)
 
-        isMax = depth % 2 == 0
+        is_max = depth % 2 == 0
         moves = game.get_legal_moves()
         if not moves:
-            return float("-inf") if isMax else float("inf")
+            return float("-inf") if is_max else float("inf")
 
         scores = [self.minimax(game.forecast_move(m), depth + 1)
                   for m in moves]
 
-        return max(scores) if isMax else min(scores)
+        return max(scores) if is_max else min(scores)
 
         # DEBUGABLE CODE (Verbose)
 
@@ -431,14 +431,14 @@ class MinimaxPlayer(IsolationPlayer):
         #     debug(depth, "score", score)
         #     return score
 
-        # isMax = depth % 2 == 0
-        # debug(depth, "isMax", isMax)
+        # is_max = depth % 2 == 0
+        # debug(depth, "is_max", is_max)
         # moves = game.get_legal_moves()
         # debug(depth, "moves", moves)
         # scores = []
         # if not moves:
         #     scores.append(float("-inf"))
-        #       if isMax
+        #       if is_max
         #       else scores.append(float("inf"))
         # else:
         #     for m in moves:
@@ -446,9 +446,9 @@ class MinimaxPlayer(IsolationPlayer):
         #         scores.append(self.minimax(game.forecast_move(m), depth + 1))
 
         # debug(depth, "scores", scores)
-        # debug(depth, "to return", max(scores) if isMax else min(scores))
+        # debug(depth, "to return", max(scores) if is_max else min(scores))
 
-        # return max(scores) if isMax else min(scores)
+        # return max(scores) if is_max else min(scores)
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -575,12 +575,12 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # NOTE: First decision on this function should be a Min
         # (since a previous decision is made by the caller as Max)
-        isMax = depth % 2 == 0
-        score = float("-inf") if isMax else float("inf")
+        is_max = depth % 2 == 0
+        score = float("-inf") if is_max else float("inf")
         for m in moves:
             new_score = self.alphabeta(
                 game.forecast_move(m), depth + 1, alpha, beta)
-            if isMax:
+            if is_max:
                 score = max(score, new_score)
                 alpha = score
                 if beta < score:

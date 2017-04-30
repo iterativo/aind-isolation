@@ -20,48 +20,48 @@ class MinimaxPlayerTest(unittest.TestCase):
 
     def test_best_score_when_last_layer_is_min_in_shallow_tree(self):
         # Arrange
-        self.player1 = game_agent.MinimaxPlayer(
+        self.player_1 = game_agent.MinimaxPlayer(
             score_fn=self.fake_score_fn, search_depth=1)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=4, height=4)
+            self.player_1, self.player_2, width=4, height=4)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((3, 3))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual(best_move, (1, 2))
 
     def test_best_score_when_last_layer_is_max_in_shallow_tree(self):
         # Arrange
-        self.player1 = game_agent.MinimaxPlayer(
+        self.player_1 = game_agent.MinimaxPlayer(
             score_fn=self.fake_score_fn, search_depth=2)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=4, height=4)
+            self.player_1, self.player_2, width=4, height=4)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((3, 3))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual(best_move, (2, 1))
 
     def test_best_score_when_last_layer_is_min_in_deep_tree(self):
         # Arrange
-        self.player1 = game_agent.MinimaxPlayer(
+        self.player_1 = game_agent.MinimaxPlayer(
             score_fn=self.fake_score_fn, search_depth=3)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=5, height=5)
+            self.player_1, self.player_2, width=5, height=5)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((4, 4))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual(best_move, (1, 2))
@@ -69,11 +69,11 @@ class MinimaxPlayerTest(unittest.TestCase):
     def fake_score_fn(self, game, player):
         """Stub score responses here"""
 
-        player1_location = game.get_player_location(player)
-        player2_location = game.get_player_location(game.get_opponent(player))
+        player_1_location = game.get_player_location(player)
+        player_2_location = game.get_player_location(game.get_opponent(player))
         default_score = 2
         score = {
-            # (player1_location, player2_location): score
+            # (player_1_location, player_2_location): score
 
             # for test_best_score_when_last_layer_is_min_in_shallow_tree
             ((1, 2), (3, 3)): 3,
@@ -85,21 +85,21 @@ class MinimaxPlayerTest(unittest.TestCase):
             ((2, 0), (3, 2)): 3,
             ((2, 4), (2, 3)): 3
         }
-        return score.get((player1_location, player2_location), default_score)
+        return score.get((player_1_location, player_2_location), default_score)
 
     def test_get_move_does_not_evaluate_node_when_single_move_available(self):
         # Arrange
-        self.player1 = game_agent.MinimaxPlayer(
+        self.player_1 = game_agent.MinimaxPlayer(
             score_fn=fake_exception_score_fn, search_depth=1)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=3, height=3)
+            self.player_1, self.player_2, width=3, height=3)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((1, 2))  # player 2
 
         # Act
         try:
-            self.player1.get_move(self.game, fake_time_left)
+            self.player_1.get_move(self.game, fake_time_left)
         except ScorerFunctionException:
             self.fail("Score function unexpectedly called")
 
@@ -115,48 +115,48 @@ class AlphaBetaPlayerTest(unittest.TestCase):
 
     def test_selection_of_single_legal_move(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=self.fake_score_decreaser_fn, search_depth=1)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=3, height=3)
+            self.player_1, self.player_2, width=3, height=3)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((1, 2))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual((2, 1), best_move)
 
     def test_best_score_after_alphabeta_traversal(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=self.fake_score_decreaser_fn, search_depth=2)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=5, height=5)
+            self.player_1, self.player_2, width=5, height=5)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((4, 4))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual(self.very_first_move, best_move)
 
     def test_pruned_branch_is_not_traversed(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=self.fake_score_decreaser_fn, search_depth=2)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=5, height=5)
+            self.player_1, self.player_2, width=5, height=5)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((4, 4))  # player 2
 
         # Act
-        self.player1.get_move(self.game, fake_time_left)
+        self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertEqual(
@@ -164,49 +164,49 @@ class AlphaBetaPlayerTest(unittest.TestCase):
 
     def test_first_move_is_max(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=self.fake_score_increaser_fn, search_depth=1)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=3, height=3)
+            self.player_1, self.player_2, width=3, height=3)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((2, 2))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertNotEqual(self.very_first_move, best_move)
 
     def test_second_move_is_min(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=self.fake_score_fn, search_depth=2)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=3, height=3)
+            self.player_1, self.player_2, width=3, height=3)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((2, 2))  # player 2
 
         # Act
-        best_move = self.player1.get_move(self.game, fake_time_left)
+        best_move = self.player_1.get_move(self.game, fake_time_left)
 
         # Assert
         self.assertNotEqual((2, 1), best_move)
 
     def test_get_move_does_not_evaluate_node_when_single_move_available(self):
         # Arrange
-        self.player1 = game_agent.AlphaBetaPlayer(
+        self.player_1 = game_agent.AlphaBetaPlayer(
             score_fn=fake_exception_score_fn, search_depth=1)
-        self.player2 = sample_players.GreedyPlayer()
+        self.player_2 = sample_players.GreedyPlayer()
         self.game = isolation.Board(
-            self.player1, self.player2, width=3, height=3)
+            self.player_1, self.player_2, width=3, height=3)
         self.game.apply_move((0, 0))  # player 1
         self.game.apply_move((1, 2))  # player 2
 
         # Act
         try:
-            self.player1.get_move(self.game, fake_time_left)
+            self.player_1.get_move(self.game, fake_time_left)
         except ScorerFunctionException:
             self.fail("Score function unexpectedly called")
 
@@ -241,17 +241,17 @@ class AlphaBetaPlayerTest(unittest.TestCase):
     def fake_score_fn(self, game, player):
         """Stub score responses here"""
 
-        player1_location = game.get_player_location(player)
-        player2_location = game.get_player_location(game.get_opponent(player))
+        player_1_location = game.get_player_location(player)
+        player_2_location = game.get_player_location(game.get_opponent(player))
         default_score = 2
         score = {
-            # (player1_location, player2_location): score
+            # (player_1_location, player_2_location): score
             ((2, 1), (0, 1)): 1,
             ((2, 1), (1, 0)): 4,
             ((1, 2), (1, 0)): 2,
             ((1, 2), (0, 1)): 3
         }
-        return score.get((player1_location, player2_location), default_score)
+        return score.get((player_1_location, player_2_location), default_score)
 
 
 def fake_exception_score_fn(game, player):
