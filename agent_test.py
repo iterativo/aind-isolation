@@ -18,6 +18,28 @@ class MinimaxPlayerTest(unittest.TestCase):
     def setUp(self):
         reload(game_agent)
 
+    def test_all_nodes_visited_in_shallow_tree(self):
+        # Arrange
+        self.player_1 = game_agent.MinimaxPlayer(
+            score_fn=self.fake_score_increaser_fn, search_depth=1)
+        self.player_2 = sample_players.GreedyPlayer()
+        self.game = isolation.Board(
+            self.player_1, self.player_2, width=9, height=9)
+        self.fake_score_increaser = 0
+        self.game._board_state = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1,
+            1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 65, 68]
+
+        # Act
+        best_move = self.player_1.get_move(self.game, fake_time_left)
+
+        # Assert
+        self.assertEqual(5, self.fake_score_increaser,
+                         "Not every node was visited")
+
     def test_best_score_when_last_layer_is_min_in_shallow_tree(self):
         # Arrange
         self.player_1 = game_agent.MinimaxPlayer(
@@ -66,6 +88,22 @@ class MinimaxPlayerTest(unittest.TestCase):
         # Assert
         self.assertEqual(best_move, (1, 2))
 
+    def test_get_move_does_not_evaluate_node_when_single_move_available(self):
+        # Arrange
+        self.player_1 = game_agent.MinimaxPlayer(
+            score_fn=fake_exception_score_fn, search_depth=1)
+        self.player_2 = sample_players.GreedyPlayer()
+        self.game = isolation.Board(
+            self.player_1, self.player_2, width=3, height=3)
+        self.game.apply_move((0, 0))  # player 1
+        self.game.apply_move((1, 2))  # player 2
+
+        # Act
+        try:
+            self.player_1.get_move(self.game, fake_time_left)
+        except ScorerFunctionException:
+            self.fail("Score function unexpectedly called")
+
     def fake_score_fn(self, game, player):
         """Stub score responses here"""
 
@@ -87,21 +125,16 @@ class MinimaxPlayerTest(unittest.TestCase):
         }
         return score.get((player_1_location, player_2_location), default_score)
 
-    def test_get_move_does_not_evaluate_node_when_single_move_available(self):
-        # Arrange
-        self.player_1 = game_agent.MinimaxPlayer(
-            score_fn=fake_exception_score_fn, search_depth=1)
-        self.player_2 = sample_players.GreedyPlayer()
-        self.game = isolation.Board(
-            self.player_1, self.player_2, width=3, height=3)
-        self.game.apply_move((0, 0))  # player 1
-        self.game.apply_move((1, 2))  # player 2
+    def fake_score_increaser_fn(self, game, player):
+        """
+        Stub score responses with gradual score increase.
+        Due to the undeterministic nature (since it shuffles its legal_moves)
+        we have to keep track of access order to this function and provide
+        the proper state values to the test to ensure expected results.
+        """
 
-        # Act
-        try:
-            self.player_1.get_move(self.game, fake_time_left)
-        except ScorerFunctionException:
-            self.fail("Score function unexpectedly called")
+        self.fake_score_increaser += 1
+        return self.fake_score_increaser
 
 
 class AlphaBetaPlayerTest(unittest.TestCase):

@@ -490,33 +490,15 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         self.time_left = time_left
 
-        # Initialize the best move so that this function returns something
-        # in case the search fails due to timeout
-        best_move = (-1, -1)
-        moves = game.get_legal_moves()
-        if not moves:
-            return best_move
-        if len(moves) == 1:
-            return moves[0]
-
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            alpha = float("-inf")
-            for m in moves:
-                new_score = self.alphabeta(game.forecast_move(m), 1, alpha)
-                if new_score > alpha:
-                    best_move = m
-                    alpha = new_score
+            return self.alphabeta(game, 1)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
 
-        # avoid forfeiting the game
-        if (best_move == (-1, -1)) and (len(moves) > 0):
-            best_move = random.choice(moves)
-
-        return best_move
+        return (-1, -1)
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -548,8 +530,9 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         Returns
         -------
-        float
-            The heuristic value of the current game state
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
 
         Notes
         -----
@@ -563,6 +546,61 @@ class AlphaBetaPlayer(IsolationPlayer):
                 testing.
         """
 
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+        moves = game.get_legal_moves()
+        if not moves:
+            return best_move
+        if len(moves) == 1:
+            return moves[0]
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            alpha = float("-inf")
+            for m in moves:
+                new_score = self.tree_traverser(
+                    game.forecast_move(m), depth, alpha)
+                if new_score > alpha:
+                    best_move = m
+                    alpha = new_score
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # avoid forfeiting the game
+        if (best_move == (-1, -1)) and (len(moves) > 0):
+            best_move = random.choice(moves)
+
+        return best_move
+
+    def tree_traverser(self, game, depth,
+                       alpha=float("-inf"), beta=float("inf")):
+        """
+        Helper fn for alphabeta. Traverses tree.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+
+        Returns
+        -------
+        float
+            The evaluation of the current board state.
+        """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
@@ -578,7 +616,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         is_max = depth % 2 == 0
         score = float("-inf") if is_max else float("inf")
         for m in moves:
-            new_score = self.alphabeta(
+            new_score = self.tree_traverser(
                 game.forecast_move(m), depth + 1, alpha, beta)
             if is_max:
                 score = max(score, new_score)
@@ -591,7 +629,6 @@ class AlphaBetaPlayer(IsolationPlayer):
                 if alpha > score:
                     break
         return score
-
 
 def debug(depth, key, value):
     """
