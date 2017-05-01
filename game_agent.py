@@ -295,9 +295,61 @@ class MinimaxPlayer(IsolationPlayer):
             (-1, -1) if there are no available legal moves.
         """
 
-        # NON-DEBUGABLE CODE (Concise)
-
         self.time_left = time_left
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.minimax(game, 1)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return (-1, -1)
+
+    def minimax(self, game, depth):
+        """Implement depth-limited minimax search algorithm as described in
+        the lectures.
+
+        This should be a modified version of MINIMAX-DECISION in the AIMA text.
+        https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
+
+        **********************************************************************
+            You MAY add additional methods to this class, or define helper
+                 functions to implement the required functionality.
+        **********************************************************************
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        Returns
+        -------
+        (int, int)
+            The board coordinates of the best move found in the current search;
+            (-1, -1) if there are no legal moves
+
+        Notes
+        -----
+            (1) You MUST use the `self.score()` method for board evaluation
+                to pass the project tests; you cannot call any other evaluation
+                function directly.
+
+            (2) If you use any helper functions (e.g., as shown in the AIMA
+                pseudocode) then you must copy the timer check into the top of
+                each helper function or else your agent will timeout during
+                testing.
+        """
+
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
@@ -305,13 +357,16 @@ class MinimaxPlayer(IsolationPlayer):
         moves = game.get_legal_moves()
         if not moves:
             return best_move
+
+        # if only 1 move available, no need to traverse tree
         if len(moves) == 1:
             return moves[0]
 
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            scored_moves = [(self.minimax(game.forecast_move(m), 1), m) 
+            scored_moves = [
+                (self.tree_traverser(game.forecast_move(m), depth), m)
                 for m in moves]
             best_move = max(scored_moves)[1]
 
@@ -321,44 +376,7 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
-        # DEBUGABLE CODE (Verbose)
-
-        # self.time_left = time_left
-
-        # # Initialize the best move so that this function returns something
-        # # in case the search fails due to timeout
-        # best_move = (-1, -1)
-        # moves = game.get_legal_moves()
-        # if not moves:
-        #     return best_move
-        # if len(moves) == 1:
-        #     return moves[0]
-
-        # depth = 0
-        # debug(depth, "START: active player", game.active_player)
-        # debug(depth, "active player location", game.get_player_location(game.active_player))
-        # debug(depth, "inactive player location", game.get_player_location(game.inactive_player))
-        # debug(depth, "moves", moves)
-
-        # try:
-        #     scored_moves = []
-        #     for m in moves:
-        #         debug(depth, "attempt move", m)
-        #         forecast = game.forecast_move(m)
-        #         minimax = self.minimax(forecast, depth + 1)
-        #         scored_moves.append((minimax, m))
-        #     debug(depth, "scored_moves", scored_moves)
-        #     selected_move = max(scored_moves)[1]
-        #     debug(depth, "selected move", selected_move)
-        #     return selected_move
-
-        # except SearchTimeout:
-        #     pass  # Handle any actions required after timeout as needed
-
-        # # Return the best move from the last completed search iteration
-        # return best_move
-
-    def minimax(self, game, depth):
+    def tree_traverser(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
 
@@ -410,45 +428,10 @@ class MinimaxPlayer(IsolationPlayer):
         if not moves:
             return float("-inf") if is_max else float("inf")
 
-        scores = [self.minimax(game.forecast_move(m), depth + 1)
+        scores = [self.tree_traverser(game.forecast_move(m), depth + 1)
                   for m in moves]
 
         return max(scores) if is_max else min(scores)
-
-        # DEBUGABLE CODE (Verbose)
-
-        # debug(depth, "active player", game.active_player)
-        # debug(depth, "active player location",
-        #       game.get_player_location(game.active_player))
-        # debug(depth, "inactive player location",
-        #       game.get_player_location(game.inactive_player))
-
-        # if self.time_left() < self.TIMER_THRESHOLD:
-        #     raise SearchTimeout()
-
-        # if depth == self.search_depth:
-        #     score = self.score(game, self)
-        #     debug(depth, "score", score)
-        #     return score
-
-        # is_max = depth % 2 == 0
-        # debug(depth, "is_max", is_max)
-        # moves = game.get_legal_moves()
-        # debug(depth, "moves", moves)
-        # scores = []
-        # if not moves:
-        #     scores.append(float("-inf"))
-        #       if is_max
-        #       else scores.append(float("inf"))
-        # else:
-        #     for m in moves:
-        #         debug(depth, "attempt move", m)
-        #         scores.append(self.minimax(game.forecast_move(m), depth + 1))
-
-        # debug(depth, "scores", scores)
-        # debug(depth, "to return", max(scores) if is_max else min(scores))
-
-        # return max(scores) if is_max else min(scores)
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -548,6 +531,9 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         best_move = (-1, -1)
         moves = game.get_legal_moves()
         if not moves:
