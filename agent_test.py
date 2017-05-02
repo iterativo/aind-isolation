@@ -88,22 +88,6 @@ class MinimaxPlayerTest(unittest.TestCase):
         # Assert
         self.assertEqual(best_move, (1, 2))
 
-    def test_get_move_does_not_evaluate_node_when_single_move_available(self):
-        # Arrange
-        self.player_1 = game_agent.MinimaxPlayer(
-            score_fn=fake_exception_score_fn, search_depth=1)
-        self.player_2 = sample_players.GreedyPlayer()
-        self.game = isolation.Board(
-            self.player_1, self.player_2, width=3, height=3)
-        self.game.apply_move((0, 0))  # player 1
-        self.game.apply_move((1, 2))  # player 2
-
-        # Act
-        try:
-            self.player_1.get_move(self.game, fake_time_left)
-        except ScorerFunctionException:
-            self.fail("Score function unexpectedly called")
-
     def fake_score_fn(self, game, player):
         """Stub score responses here"""
 
@@ -297,7 +281,7 @@ def fake_time_left():
 
 def debug(game):
     """
-    To help with debugging. 
+    To help with debugging.
     Prints out game grid and relevant metadata.
     """
     print("\n")

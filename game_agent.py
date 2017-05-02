@@ -300,7 +300,7 @@ class MinimaxPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.minimax(game, 1)
+            return self.minimax(game, self.search_depth)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -351,42 +351,10 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # Initialize the best move so that this function returns something
-        # in case the search fails due to timeout
-        best_move = (-1, -1)
-        moves = game.get_legal_moves()
-        if not moves:
-            return best_move
+        return self._evaluate(game, depth)[1]
 
-        # if only 1 move available, no need to traverse tree
-        if len(moves) == 1:
-            return moves[0]
-
-        try:
-            # The try/except block will automatically catch the exception
-            # raised when the timer is about to expire.
-            scored_moves = [
-                (self.tree_traverser(game.forecast_move(m), depth), m)
-                for m in moves]
-            best_move = max(scored_moves)[1]
-
-        except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
-
-        # Return the best move from the last completed search iteration
-        return best_move
-
-    def tree_traverser(self, game, depth):
-        """Implement depth-limited minimax search algorithm as described in
-        the lectures.
-
-        This should be a modified version of MINIMAX-DECISION in the AIMA text.
-        https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
-
-        **********************************************************************
-            You MAY add additional methods to this class, or define helper
-                 functions to implement the required functionality.
-        **********************************************************************
+    def _evaluate(self, game, depth, maximize=True):
+        """Evaluates nodes
 
         Parameters
         ----------
@@ -398,40 +366,40 @@ class MinimaxPlayer(IsolationPlayer):
             Depth is an integer representing the maximum number of plies to
             search in the game tree before aborting
 
+        maximize : boolean
+            True if it's a maximize node. False otherwise.
+
         Returns
         -------
-        float
-            The heuristic value of the current game state
-
-        Notes
-        -----
-            (1) You MUST use the `self.score()` method for board evaluation
-                to pass the project tests; you cannot call any other evaluation
-                function directly.
-
-            (2) If you use any helper functions (e.g., as shown in the AIMA
-                pseudocode) then you must copy the timer check into the top of
-                each helper function or else your agent will timeout during
-                testing.
+        tuple
+            (score, move)
         """
-
-        # NON-DEBUGABLE CODE (Concise)
-
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == self.search_depth:
-            return self.score(game, self)
-
-        is_max = depth % 2 == 0
         moves = game.get_legal_moves()
         if not moves:
-            return float("-inf") if is_max else float("inf")
+            return game.utility(self), (-1, -1)
 
-        scores = [self.tree_traverser(game.forecast_move(m), depth + 1)
-                  for m in moves]
+        if depth == 0:
+            return self.score(game, self), (-1, -1)
 
-        return max(scores) if is_max else min(scores)
+        best_move = (-1, -1)
+        if maximize:
+            best_score = float("-inf")
+            for m in moves:
+                forecast = game.forecast_move(m)
+                score, _ = self._evaluate(forecast, depth - 1, False)
+                if score > best_score:
+                    best_score, best_move = score, m
+        else:  # minimize
+            best_score = float("inf")
+            for m in moves:
+                forecast = game.forecast_move(m)
+                score, _ = self._evaluate(forecast, depth - 1, True)
+                if score < best_score:
+                    best_score, best_move = score, m
+        return best_score, best_move
 
 
 class AlphaBetaPlayer(IsolationPlayer):
