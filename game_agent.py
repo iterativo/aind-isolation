@@ -351,10 +351,10 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        return self._evaluate(game, depth)[1]
+        return self._evaluate_minimax(game, depth)[1]
 
-    def _evaluate(self, game, depth, maximize=True):
-        """Evaluates nodes
+    def _evaluate_minimax(self, game, depth, maximize=True):
+        """Evaluates nodes per minimax logic
 
         Parameters
         ----------
@@ -386,17 +386,19 @@ class MinimaxPlayer(IsolationPlayer):
 
         best_move = (-1, -1)
         if maximize:
+            # maximize
             best_score = float("-inf")
             for m in moves:
                 forecast = game.forecast_move(m)
-                score, _ = self._evaluate(forecast, depth - 1, False)
+                score, _ = self._evaluate_minimax(forecast, depth - 1, False)
                 if score > best_score:
                     best_score, best_move = score, m
-        else:  # minimize
+        else:
+            # minimize
             best_score = float("inf")
             for m in moves:
                 forecast = game.forecast_move(m)
-                score, _ = self._evaluate(forecast, depth - 1, True)
+                score, _ = self._evaluate_minimax(forecast, depth - 1, True)
                 if score < best_score:
                     best_score, best_move = score, m
         return best_score, best_move
@@ -444,7 +446,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, 1)
+            return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -502,37 +504,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        best_move = (-1, -1)
-        moves = game.get_legal_moves()
-        if not moves:
-            return best_move
-        if len(moves) == 1:
-            return moves[0]
+        return self._evaluate_alphabeta(game, depth, alpha, beta)[1]
 
-        try:
-            # The try/except block will automatically catch the exception
-            # raised when the timer is about to expire.
-            alpha = float("-inf")
-            for m in moves:
-                new_score = self.tree_traverser(
-                    game.forecast_move(m), depth, alpha)
-                if new_score > alpha:
-                    best_move = m
-                    alpha = new_score
-
-        except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
-
-        # avoid forfeiting the game
-        if (best_move == (-1, -1)) and (len(moves) > 0):
-            best_move = random.choice(moves)
-
-        return best_move
-
-    def tree_traverser(self, game, depth,
-                       alpha=float("-inf"), beta=float("inf")):
-        """
-        Helper fn for alphabeta. Traverses tree.
+    def _evaluate_alphabeta(self, game, depth, alpha, beta, maximize=True):
+        """Evaluates node per alphabeta logic
 
         Parameters
         ----------
@@ -552,37 +527,48 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         Returns
         -------
-        float
-            The evaluation of the current board state.
+        tuple
+            (score, move)
         """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        if depth == self.search_depth:
-            return self.score(game, self)
-
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game, self)
+            return game.utility(self), (-1, -1)
 
-        # NOTE: First decision on this function should be a Min
-        # (since a previous decision is made by the caller as Max)
-        is_max = depth % 2 == 0
-        score = float("-inf") if is_max else float("inf")
-        for m in moves:
-            new_score = self.tree_traverser(
-                game.forecast_move(m), depth + 1, alpha, beta)
-            if is_max:
-                score = max(score, new_score)
-                alpha = score
-                if beta < score:
+        if depth == 0:
+            return self.score(game, self), (-1, -1)
+
+        best_move = (-1, -1)
+        if maximize:
+            # maximize
+            best_score = float("-inf")
+            for m in moves:
+                forecast = game.forecast_move(m)
+                score, _ = self._evaluate_alphabeta(
+                    forecast, depth - 1, alpha, beta, False)
+                if score > best_score:
+                    best_score, best_move = score, m
+                if best_score >= beta:
+                    # prune if applicable
                     break
-            else:  # min
-                score = min(score, new_score)
-                beta = score
-                if alpha > score:
+                alpha = max(alpha, best_score)
+        else:
+            # minimize
+            best_score = float("inf")
+            for m in moves:
+                forecast = game.forecast_move(m)
+                score, _ = self._evaluate_alphabeta(
+                    forecast, depth - 1, alpha, beta, True)
+                if score < best_score:
+                    best_score, best_move = score, m
+                if best_score <= alpha:
+                    # prune if applicable
                     break
-        return score
+                beta = min(beta, best_score)
+        return best_score, best_move
+
 
 def debug(depth, key, value):
     """

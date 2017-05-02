@@ -211,22 +211,6 @@ class AlphaBetaPlayerTest(unittest.TestCase):
         # Assert
         self.assertNotEqual((2, 1), best_move)
 
-    def test_get_move_does_not_evaluate_node_when_single_move_available(self):
-        # Arrange
-        self.player_1 = game_agent.AlphaBetaPlayer(
-            score_fn=fake_exception_score_fn, search_depth=1)
-        self.player_2 = sample_players.GreedyPlayer()
-        self.game = isolation.Board(
-            self.player_1, self.player_2, width=3, height=3)
-        self.game.apply_move((0, 0))  # player 1
-        self.game.apply_move((1, 2))  # player 2
-
-        # Act
-        try:
-            self.player_1.get_move(self.game, fake_time_left)
-        except ScorerFunctionException:
-            self.fail("Score function unexpectedly called")
-
     def fake_score_decreaser_fn(self, game, player):
         """
         Stub score responses with gradual score decrease.
@@ -269,10 +253,6 @@ class AlphaBetaPlayerTest(unittest.TestCase):
             ((1, 2), (0, 1)): 3
         }
         return score.get((player_1_location, player_2_location), default_score)
-
-
-def fake_exception_score_fn(game, player):
-    raise ScorerFunctionException()
 
 
 def fake_time_left():
